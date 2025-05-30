@@ -1,4 +1,4 @@
-const scriptURL = "https://script.google.com/a/macros/thrivemarket.com/s/AKfycbzJdzGfz-Iwo51Jg_IgDDd6zqZn7Z_RTw7l3ZZpKte1loSHodnv99x0qPGpESs0kxkaPg/exec";
+const scriptURL = "https://script.google.com/a/macros/thrivemarket.com/s/AKfycbzp0jDWO-T9f-FRAVAbEbCf0NxOuXBj5elBfqXB1LGIxX1l1_mSSbPwgaDZ1bJfryw-og/exec";
 let mode = "Sortie"; // mode par défaut
 
 function setMode(selectedMode) {
