@@ -1,144 +1,190 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <title>Gestion Scanneurs - Astro 2090</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion des Scanneurs 2090</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       font-family: 'Orbitron', sans-serif;
-      background: radial-gradient(ellipse at center, #0f0f1a 0%, #000010 100%);
-      color: #00ffe7;
+      background: radial-gradient(ellipse at center, #0f2027, #203a43, #2c5364);
+      color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem;
     }
+
     h1 {
-      font-size: 2.5rem;
-      text-shadow: 0 0 10px #0ff;
-    }
-    .scanner-input {
-      font-size: 1.5rem;
-      padding: 1rem;
-      width: 320px;
-      margin: 2rem 0;
-      background: #111;
-      border: 2px solid #0ff;
-      border-radius: 10px;
+      margin: 20px 0;
+      font-size: 2em;
       color: #00ffe7;
-      text-align: center;
-      box-shadow: 0 0 20px #0ff33a;
+      text-shadow: 0 0 10px #00ffe7;
     }
-    .status {
-      font-size: 1.2rem;
-      margin-bottom: 2rem;
-      color: #ff0;
-      text-shadow: 0 0 5px #ff0;
-    }
-    .lists {
+
+    .tabs {
       display: flex;
-      gap: 2rem;
-      width: 90%;
-      max-width: 1000px;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .tab-button {
+      padding: 10px 30px;
+      background: #1a1a40;
+      border: 1px solid #00ffe7;
+      color: #00ffe7;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .tab-button.active {
+      background: #00ffe7;
+      color: #1a1a40;
+    }
+
+    .scanner-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 300px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 1em;
+      background: #101a2b;
+      border: 1px solid #00ffe7;
+      color: #00ffe7;
+    }
+
+    button {
+      padding: 10px;
+      background: #00ffe7;
+      border: none;
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-size: 1em;
+      color: #00ffc8;
+    }
+
+    .lists {
+      margin-top: 40px;
+      display: flex;
+      gap: 50px;
+      flex-wrap: wrap;
       justify-content: center;
     }
-    .column {
-      background: rgba(0, 255, 231, 0.05);
+
+    .list-box {
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid #00ffe7;
-      border-radius: 15px;
-      padding: 1rem;
-      box-shadow: 0 0 15px #0ff;
-      width: 45%;
+      padding: 20px;
+      width: 250px;
+      min-height: 150px;
     }
-    .column h2 {
-      text-align: center;
-      font-size: 1.5rem;
-      color: #00f7ff;
-      text-shadow: 0 0 8px #0ff;
+
+    .list-box h3 {
+      margin-top: 0;
+      color: #00ffe7;
     }
-    ul {
+
+    .list-box ul {
       list-style: none;
-      padding-left: 0;
-      margin-top: 1rem;
+      padding: 0;
+      margin: 0;
     }
-    li {
-      padding: 0.5rem 0;
-      border-bottom: 1px dashed #00ffe7;
+
+    .list-box li {
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
   </style>
 </head>
 <body>
-  <h1>Interface Scanneurs - Poste Spatial 2090</h1>
-  <input type="text" id="scanInput" class="scanner-input" placeholder="Scanner badge ou scanneur..." autofocus />
-  <div class="status" id="status"></div>
+
+  <h1>Gestion Scanneurs</h1>
+
+  <div class="tabs">
+    <button class="tab-button active" onclick="setMode('Sortie')">Sortie</button>
+    <button class="tab-button" onclick="setMode('Retour')">Retour</button>
+  </div>
+
+  <form class="scanner-form" onsubmit="handleSubmit(event)">
+    <input type="text" id="badgeId" placeholder="Scan du badge employé" required>
+    <input type="text" id="scannerId" placeholder="Scan du scanneur" required>
+    <button type="submit">Valider</button>
+    <div class="status" id="statusMessage"></div>
+  </form>
+
   <div class="lists">
-    <div class="column">
-      <h2>Scanneurs Disponibles</h2>
-      <ul id="availableScanners"></ul>
+    <div class="list-box">
+      <h3>Scanneurs disponibles</h3>
+      <ul id="availableList">
+        <li>Chargement...</li>
+      </ul>
     </div>
-    <div class="column">
-      <h2>Badges en Sortie</h2>
-      <ul id="checkedOutBadges"></ul>
+
+    <div class="list-box">
+      <h3>Badges en emprunt</h3>
+      <ul id="borrowedList">
+        <li>Chargement...</li>
+      </ul>
     </div>
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbx1234567890/exec"; // Remplace avec ton URL Apps Script
-    let currentBadge = null;
+    const scriptURL = "https://script.google.com/macros/s/TON-URL-SCRIPT/exec";
+    let mode = "Sortie"; // ou "Retour" selon l'onglet
 
-    document.getElementById("scanInput").addEventListener("keypress", async function(e) {
-      if (e.key === "Enter") {
-        const input = e.target.value.trim();
-        e.target.value = "";
+    function setMode(selectedMode) {
+      mode = selectedMode;
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      const btn = Array.from(document.querySelectorAll('.tab-button')).find(b => b.textContent === selectedMode);
+      if (btn) btn.classList.add('active');
+    }
 
-        if (!currentBadge) {
-          currentBadge = input;
-          document.getElementById("status").textContent = `Badge scanné : ${currentBadge}`;
-        } else {
-          const scannerId = input;
-          const res = await fetch(scriptURL, {
-            method: "POST",
-            body: JSON.stringify({ badgeId: currentBadge, scannerId })
-          });
-          const result = await res.json();
-          document.getElementById("status").textContent = result.message;
-          currentBadge = null;
-          refreshLists();
-        }
-      }
-    });
+    function handleSubmit(event) {
+      event.preventDefault();
+      const badgeId = document.getElementById("badgeId").value;
+      const scannerId = document.getElementById("scannerId").value;
 
-    async function refreshLists() {
-      const [scannerRes, badgeRes] = await Promise.all([
-        fetch(`${scriptURL}?action=availableScanners`),
-        fetch(`${scriptURL}?action=checkedOutBadges`)
-      ]);
-      const scanners = await scannerRes.json();
-      const badges = await badgeRes.json();
-
-      const scannerList = document.getElementById("availableScanners");
-      const badgeList = document.getElementById("checkedOutBadges");
-
-      scannerList.innerHTML = "";
-      badgeList.innerHTML = "";
-
-      scanners.scanners.forEach(s => {
-        const li = document.createElement("li");
-        li.textContent = s;
-        scannerList.appendChild(li);
-      });
-
-      badges.badges.forEach(b => {
-        const li = document.createElement("li");
-        li.textContent = b;
-        badgeList.appendChild(li);
+      fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({ badgeId, scannerId, mode })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("statusMessage").textContent = data.message || "Succès.";
+        document.getElementById("badgeId").value = "";
+        document.getElementById("scannerId").value = "";
+        refreshLists(); // recharger les listes après soumission
+      })
+      .catch(err => {
+        console.error("Erreur", err);
+        document.getElementById("statusMessage").textContent = "Erreur de soumission.";
       });
     }
 
+    function refreshLists() {
+      // Pour afficher dynamiquement les listes : appeler un autre Apps Script si nécessaire
+      // Ici, on peut simuler ou ignorer si pas encore de backend pour ça.
+      document.getElementById("availableList").innerHTML = `
+        <li>SC-001</li>
+        <li>SC-005</li>
+        <li>SC-008</li>
+      `;
+
+      document.getElementById("borrowedList").innerHTML = `
+        <li>Jean Louis (10012)</li>
+        <li>Marie Pierre (10022)</li>
+      `;
+    }
+
     refreshLists();
-    setInterval(refreshLists, 15000);
   </script>
 </body>
 </html>
