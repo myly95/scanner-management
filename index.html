@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -7,14 +6,13 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
 
-    /* Background animé futuriste */
     body {
       margin: 0;
       height: 100vh;
       font-family: 'Orbitron', sans-serif;
       background: radial-gradient(circle at center, #01020f, #0f111f 70%);
       overflow-x: hidden;
-      color: #00fff7;
+      color: #a0b9cc;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -24,14 +22,14 @@
       position: relative;
     }
 
-    /* Animation de fond "grille" néon */
+    /* Background grille animé */
     body::before {
       content: "";
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background:
-        linear-gradient(90deg, rgba(0,255,247,0.07) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(0,255,247,0.07) 1px, transparent 1px);
+        linear-gradient(90deg, rgba(160, 185, 204, 0.07) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(160, 185, 204, 0.07) 1px, transparent 1px);
       background-size: 40px 40px;
       animation: gridShift 30s linear infinite;
       pointer-events: none;
@@ -47,15 +45,14 @@
       margin-bottom: 10px;
       text-transform: uppercase;
       text-shadow:
-        0 0 8px #00fff7,
-        0 0 20px #00fff7,
-        0 0 30px #00fff7,
-        0 0 40px #00fff7;
+        0 0 6px #6a8dadaa,
+        0 0 10px #6a8dadaa;
       letter-spacing: 4px;
+      color: #7ea1c7;
       z-index: 1;
     }
 
-    /* Tabs futuristes */
+    /* Tabs */
     .tabs {
       display: flex;
       gap: 24px;
@@ -64,28 +61,28 @@
     }
     .tab-button {
       background: transparent;
-      border: 2px solid #00fff7;
-      color: #00fff7;
+      border: 2px solid #7ea1c7;
+      color: #7ea1c7;
       padding: 14px 48px;
       font-size: 1.25rem;
       cursor: pointer;
       border-radius: 40px;
       transition: all 0.3s ease;
-      box-shadow: 0 0 10px #00fff7;
+      box-shadow: 0 0 8px #7ea1c7aa;
       letter-spacing: 1.5px;
       user-select: none;
     }
     .tab-button:hover {
-      background: #00fff7;
-      color: #0a0a0a;
-      box-shadow: 0 0 24px #00fff7;
-      transform: scale(1.1);
+      background: #7ea1c7dd;
+      color: #101c2a;
+      box-shadow: 0 0 14px #7ea1c7cc;
+      transform: scale(1.05);
     }
     .tab-button.active {
-      background: #00fff7;
-      color: #0a0a0a;
-      box-shadow: 0 0 28px #00fff7, 0 0 50px #00fff7;
-      transform: scale(1.15);
+      background: #7ea1c7;
+      color: #101c2a;
+      box-shadow: 0 0 18px #7ea1c7ee, 0 0 32px #7ea1c7cc;
+      transform: scale(1.1);
       pointer-events: none;
     }
 
@@ -95,13 +92,13 @@
       flex-direction: column;
       gap: 20px;
       width: 320px;
-      background: rgba(0, 255, 247, 0.1);
+      background: rgba(126, 161, 199, 0.12);
       padding: 30px;
       border-radius: 20px;
       box-shadow:
-        0 0 20px #00fff7,
-        inset 0 0 10px #00fff7;
-      backdrop-filter: blur(10px);
+        0 0 12px #7ea1c7aa,
+        inset 0 0 8px #7ea1c7aa;
+      backdrop-filter: blur(8px);
       z-index: 1;
     }
     input {
@@ -110,23 +107,23 @@
       border: none;
       border-radius: 14px;
       outline: none;
-      background: rgba(0, 255, 247, 0.15);
-      color: #0a0a0a;
+      background: rgba(126, 161, 199, 0.2);
+      color: #101c2a;
       font-weight: 600;
       box-shadow:
-        0 0 8px #00fff7;
+        0 0 6px #7ea1c7aa;
       transition: background 0.3s ease;
     }
     input::placeholder {
-      color: #004f52;
+      color: #5b7a9b;
       font-weight: 500;
     }
     input:focus {
-      background: #00fff7;
-      color: #0a0a0a;
+      background: #aec6e8;
+      color: #101c2a;
       box-shadow:
-        0 0 18px #00fff7,
-        0 0 30px #00fff7;
+        0 0 14px #7ea1c7cc,
+        0 0 20px #7ea1c7cc;
     }
     button {
       padding: 15px;
@@ -134,32 +131,36 @@
       font-weight: 700;
       border-radius: 40px;
       border: none;
-      background: #00fff7;
-      color: #0a0a0a;
+      background: #7ea1c7;
+      color: #101c2a;
       cursor: pointer;
-      box-shadow: 0 0 25px #00fff7;
+      box-shadow: 0 0 20px #7ea1c7cc;
       transition: background 0.3s ease, box-shadow 0.3s ease;
       letter-spacing: 2px;
       text-transform: uppercase;
     }
     button:disabled {
-      background: #004f52;
+      background: #42587a;
       box-shadow: none;
       cursor: not-allowed;
-      color: #003333;
+      color: #2b3b55;
     }
     button:hover:not(:disabled) {
-      background: #00d8c1;
-      box-shadow: 0 0 40px #00d8c1;
+      background: #a2b9db;
+      box-shadow: 0 0 30px #a2b9db;
     }
 
-    /* Status message */
+    /* Status */
     .status {
       font-weight: 700;
       font-size: 1rem;
       text-align: center;
       height: 24px;
       user-select: none;
+      color: #7ea1c7;
+    }
+    .status.error {
+      color: #d97e7e;
     }
 
     /* Lists */
@@ -174,24 +175,26 @@
       z-index: 1;
     }
     .list-box {
-      background: rgba(0, 255, 247, 0.07);
-      border: 2px solid #00fff7;
+      background: rgba(126, 161, 199, 0.08);
+      border: 2px solid #7ea1c7aa;
       padding: 30px 25px;
       border-radius: 18px;
       width: 320px;
       min-height: 200px;
       box-shadow:
-        0 0 20px #00fff7 inset;
+        0 0 12px #7ea1c7cc inset;
       overflow-y: auto;
+      color: #496a8c;
     }
     .list-box h3 {
       margin-top: 0;
       margin-bottom: 18px;
       font-size: 1.5rem;
-      text-shadow: 0 0 12px #00fff7;
+      text-shadow: 0 0 6px #7ea1c7aa;
       text-transform: uppercase;
       letter-spacing: 2px;
       user-select: none;
+      color: #7ea1c7;
     }
     .list-box ul {
       list-style: none;
@@ -202,7 +205,7 @@
     }
     .list-box li {
       padding: 10px 6px;
-      border-bottom: 1px solid rgba(0, 255, 247, 0.15);
+      border-bottom: 1px solid rgba(126, 161, 199, 0.15);
       font-weight: 600;
       font-size: 1.1rem;
       letter-spacing: 0.7px;
@@ -217,7 +220,7 @@
       width: 8px;
     }
     .list-box ul::-webkit-scrollbar-thumb {
-      background: #00fff7;
+      background: #7ea1c7bb;
       border-radius: 6px;
     }
     .list-box ul::-webkit-scrollbar-track {
@@ -251,9 +254,10 @@
     <button class="tab-button" onclick="setMode('Retour')">Retour</button>
   </div>
 
-  <form class="scanner-form" onsubmit="handleSubmit(event)" autocomplete="off">
-    <input type="text" id="badgeId" placeholder="Scan du badge employé" required autofocus autocomplete="off" />
-    <input type="text" id="scannerId" placeholder="Scan du scanneur" required autocomplete="off" />
+  <form
+  <form class="scanner-form" onsubmit="handleSubmit(event)" autocomplete="off" spellcheck="false">
+    <input type="text" id="badgeId" placeholder="Scanner le badge employé" autofocus required />
+    <input type="text" id="scannerId" placeholder="Scanner le scanneur" required />
     <button type="submit">Valider</button>
     <div class="status" id="statusMessage"></div>
   </form>
@@ -265,7 +269,6 @@
         <li>Chargement...</li>
       </ul>
     </div>
-
     <div class="list-box">
       <h3>Badges en emprunt</h3>
       <ul id="borrowedList">
@@ -274,6 +277,111 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+<script>
+  const scriptURL = "https://script.google.com/a/macros/thrivemarket.com/s/TON_SCRIPT_ID/exec"; 
+  // Remplace par ton URL Google Apps Script de gestion
+
+  let mode = "Sortie";
+
+  function setMode(selectedMode) {
+    mode = selectedMode;
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-button').forEach(btn => {
+      if(btn.textContent === selectedMode) btn.classList.add('active');
+    });
+    clearStatus();
+    resetForm();
+  }
+
+  function clearStatus() {
+    const status = document.getElementById("statusMessage");
+    status.textContent = "";
+    status.classList.remove("error");
+  }
+
+  function setStatus(message, isError = false) {
+    const status = document.getElementById("statusMessage");
+    status.textContent = message;
+    if(isError) status.classList.add("error");
+    else status.classList.remove("error");
+  }
+
+  function resetForm() {
+    document.getElementById("badgeId").value = "";
+    document.getElementById("scannerId").value = "";
+    document.getElementById("badgeId").focus();
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const badgeInput = document.getElementById("badgeId");
+    const scannerInput = document.getElementById("scannerId");
+    const badgeId = badgeInput.value.trim();
+    const scannerId = scannerInput.value.trim();
+
+    if(!badgeId || !scannerId){
+      setStatus("Veuillez scanner le badge et le scanneur.", true);
+      return;
+    }
+
+    setStatus("Envoi en cours...");
+    e.target.querySelector("button").disabled = true;
+
+    try {
+      const response = await fetch(scriptURL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ badgeId, scannerId, mode }),
+      });
+
+      const data = await response.json();
+
+      if(data.success){
+        setStatus(data.message || "Action enregistrée avec succès.");
+        resetForm();
+        refreshLists();
+      } else {
+        setStatus(data.message || "Erreur lors de l'enregistrement.", true);
+      }
+    } catch (error) {
+      setStatus("Erreur de communication avec le serveur.", true);
+      console.error(error);
+    }
+
+    e.target.querySelector("button").disabled = false;
+  }
+
+  async function refreshLists(){
+    try {
+      const res = await fetch(scriptURL);
+      const data = await res.json();
+
+      const availableList = document.getElementById("availableList");
+      const borrowedList = document.getElementById("borrowedList");
+
+      if(Array.isArray(data.availableScanners) && data.availableScanners.length){
+        availableList.innerHTML = data.availableScanners.map(sc => `<li>${sc}</li>`).join('');
+      } else {
+        availableList.innerHTML = "<li>Aucun scanneur disponible</li>";
+      }
+
+      if(Array.isArray(data.borrowedBadges) && data.borrowedBadges.length){
+        borrowedList.innerHTML = data.borrowedBadges.map(b => `<li>${b.name} (${b.badgeId})</li>`).join('');
+      } else {
+        borrowedList.innerHTML = "<li>Aucun badge en emprunt</li>";
+      }
+    } catch (err) {
+      document.getElementById("availableList").innerHTML = "<li>Erreur chargement</li>";
+      document.getElementById("borrowedList").innerHTML = "<li>Erreur chargement</li>";
+      console.error(err);
+    }
+  }
+
+  // Initial load
+  refreshLists();
+</script>
+
 </body>
 </html>
+
