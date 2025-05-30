@@ -1,9 +1,11 @@
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Gestion Scanneurs - Astro 2090</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    /* (Colle ici tout ton CSS actuel) */
     body {
       margin: 0;
       font-family: 'Orbitron', sans-serif;
@@ -13,20 +15,17 @@
       flex-direction: column;
       align-items: center;
     }
-
     h1 {
       margin: 20px 0;
       font-size: 2em;
       color: #00ffe7;
       text-shadow: 0 0 10px #00ffe7;
     }
-
     .tabs {
       display: flex;
       gap: 20px;
       margin-bottom: 20px;
     }
-
     .tab-button {
       padding: 10px 30px;
       background: #1a1a40;
@@ -35,19 +34,16 @@
       cursor: pointer;
       transition: 0.3s;
     }
-
     .tab-button.active {
       background: #00ffe7;
       color: #1a1a40;
     }
-
     .scanner-form {
       display: flex;
       flex-direction: column;
       gap: 10px;
       width: 300px;
     }
-
     input {
       padding: 10px;
       font-size: 1em;
@@ -55,7 +51,6 @@
       border: 1px solid #00ffe7;
       color: #00ffe7;
     }
-
     button {
       padding: 10px;
       background: #00ffe7;
@@ -64,13 +59,11 @@
       cursor: pointer;
       font-weight: bold;
     }
-
     .status {
       margin-top: 15px;
       font-size: 1em;
       color: #00ffc8;
     }
-
     .lists {
       margin-top: 40px;
       display: flex;
@@ -78,7 +71,6 @@
       flex-wrap: wrap;
       justify-content: center;
     }
-
     .list-box {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid #00ffe7;
@@ -86,18 +78,15 @@
       width: 250px;
       min-height: 150px;
     }
-
     .list-box h3 {
       margin-top: 0;
       color: #00ffe7;
     }
-
     .list-box ul {
       list-style: none;
       padding: 0;
       margin: 0;
     }
-
     .list-box li {
       padding: 5px 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -114,8 +103,8 @@
   </div>
 
   <form class="scanner-form" onsubmit="handleSubmit(event)">
-    <input type="text" id="badgeId" placeholder="Scan du badge employé" required>
-    <input type="text" id="scannerId" placeholder="Scan du scanneur" required>
+    <input type="text" id="badgeId" placeholder="Scan du badge employé" required />
+    <input type="text" id="scannerId" placeholder="Scan du scanneur" required />
     <button type="submit">Valider</button>
     <div class="status" id="statusMessage"></div>
   </form>
@@ -136,55 +125,6 @@
     </div>
   </div>
 
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/TON-URL-SCRIPT/exec";
-    let mode = "Sortie"; // ou "Retour" selon l'onglet
-
-    function setMode(selectedMode) {
-      mode = selectedMode;
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      const btn = Array.from(document.querySelectorAll('.tab-button')).find(b => b.textContent === selectedMode);
-      if (btn) btn.classList.add('active');
-    }
-
-    function handleSubmit(event) {
-      event.preventDefault();
-      const badgeId = document.getElementById("badgeId").value;
-      const scannerId = document.getElementById("scannerId").value;
-
-      fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({ badgeId, scannerId, mode })
-      })
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("statusMessage").textContent = data.message || "Succès.";
-        document.getElementById("badgeId").value = "";
-        document.getElementById("scannerId").value = "";
-        refreshLists(); // recharger les listes après soumission
-      })
-      .catch(err => {
-        console.error("Erreur", err);
-        document.getElementById("statusMessage").textContent = "Erreur de soumission.";
-      });
-    }
-
-    function refreshLists() {
-      // Pour afficher dynamiquement les listes : appeler un autre Apps Script si nécessaire
-      // Ici, on peut simuler ou ignorer si pas encore de backend pour ça.
-      document.getElementById("availableList").innerHTML = `
-        <li>SC-001</li>
-        <li>SC-005</li>
-        <li>SC-008</li>
-      `;
-
-      document.getElementById("borrowedList").innerHTML = `
-        <li>Jean Louis (10012)</li>
-        <li>Marie Pierre (10022)</li>
-      `;
-    }
-
-    refreshLists();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
