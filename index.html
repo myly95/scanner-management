@@ -1,0 +1,144 @@
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Scanneurs 2090</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: radial-gradient(ellipse at center, #0f0f1a 0%, #000010 100%);
+      color: #00ffe7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      text-shadow: 0 0 10px #0ff;
+    }
+    .scanner-input {
+      font-size: 1.5rem;
+      padding: 1rem;
+      width: 320px;
+      margin: 2rem 0;
+      background: #111;
+      border: 2px solid #0ff;
+      border-radius: 10px;
+      color: #00ffe7;
+      text-align: center;
+      box-shadow: 0 0 20px #0ff33a;
+    }
+    .status {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      color: #ff0;
+      text-shadow: 0 0 5px #ff0;
+    }
+    .lists {
+      display: flex;
+      gap: 2rem;
+      width: 90%;
+      max-width: 1000px;
+      justify-content: center;
+    }
+    .column {
+      background: rgba(0, 255, 231, 0.05);
+      border: 1px solid #00ffe7;
+      border-radius: 15px;
+      padding: 1rem;
+      box-shadow: 0 0 15px #0ff;
+      width: 45%;
+    }
+    .column h2 {
+      text-align: center;
+      font-size: 1.5rem;
+      color: #00f7ff;
+      text-shadow: 0 0 8px #0ff;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 1rem;
+    }
+    li {
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed #00ffe7;
+    }
+  </style>
+</head>
+<body>
+  <h1>Interface Scanneurs - Poste Spatial 2090</h1>
+  <input type="text" id="scanInput" class="scanner-input" placeholder="Scanner badge ou scanneur..." autofocus />
+  <div class="status" id="status"></div>
+  <div class="lists">
+    <div class="column">
+      <h2>Scanneurs Disponibles</h2>
+      <ul id="availableScanners"></ul>
+    </div>
+    <div class="column">
+      <h2>Badges en Sortie</h2>
+      <ul id="checkedOutBadges"></ul>
+    </div>
+  </div>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbx1234567890/exec"; // Remplace avec ton URL Apps Script
+    let currentBadge = null;
+
+    document.getElementById("scanInput").addEventListener("keypress", async function(e) {
+      if (e.key === "Enter") {
+        const input = e.target.value.trim();
+        e.target.value = "";
+
+        if (!currentBadge) {
+          currentBadge = input;
+          document.getElementById("status").textContent = `Badge scanné : ${currentBadge}`;
+        } else {
+          const scannerId = input;
+          const res = await fetch(scriptURL, {
+            method: "POST",
+            body: JSON.stringify({ badgeId: currentBadge, scannerId })
+          });
+          const result = await res.json();
+          document.getElementById("status").textContent = result.message;
+          currentBadge = null;
+          refreshLists();
+        }
+      }
+    });
+
+    async function refreshLists() {
+      const [scannerRes, badgeRes] = await Promise.all([
+        fetch(`${scriptURL}?action=availableScanners`),
+        fetch(`${scriptURL}?action=checkedOutBadges`)
+      ]);
+      const scanners = await scannerRes.json();
+      const badges = await badgeRes.json();
+
+      const scannerList = document.getElementById("availableScanners");
+      const badgeList = document.getElementById("checkedOutBadges");
+
+      scannerList.innerHTML = "";
+      badgeList.innerHTML = "";
+
+      scanners.scanners.forEach(s => {
+        const li = document.createElement("li");
+        li.textContent = s;
+        scannerList.appendChild(li);
+      });
+
+      badges.badges.forEach(b => {
+        const li = document.createElement("li");
+        li.textContent = b;
+        badgeList.appendChild(li);
+      });
+    }
+
+    refreshLists();
+    setInterval(refreshLists, 15000);
+  </script>
+</body>
+</html>
