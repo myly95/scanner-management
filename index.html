@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
@@ -86,12 +87,66 @@
       pointer-events: none;
     }
 
+    /* Conteneur principal 3 colonnes */
+    .main-container {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+      max-width: 1100px;
+      width: 100%;
+      margin: auto;
+      z-index: 1;
+    }
+
+    /* Colonnes */
+    .list-box {
+      background: rgba(126, 161, 199, 0.08);
+      border: 2px solid #7ea1c7aa;
+      padding: 30px 25px;
+      border-radius: 18px;
+      box-shadow:
+        0 0 12px #7ea1c7cc inset;
+      overflow-y: auto;
+      color: #496a8c;
+      flex: 1;
+      max-height: 400px;
+    }
+    .list-box h3 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.5rem;
+      text-shadow: 0 0 6px #7ea1c7aa;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      user-select: none;
+      color: #7ea1c7;
+      text-align: center;
+    }
+    .list-box ul {
+      list-style: none;
+      padding-left: 10px;
+      margin: 0;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .list-box li {
+      padding: 10px 6px;
+      border-bottom: 1px solid rgba(126, 161, 199, 0.15);
+      font-weight: 600;
+      font-size: 1.1rem;
+      letter-spacing: 0.7px;
+      user-select: text;
+    }
+    .list-box li:last-child {
+      border-bottom: none;
+    }
+
     /* Form */
     .scanner-form {
       display: flex;
       flex-direction: column;
       gap: 20px;
-      width: 320px;
+      width: 350px;
       background: rgba(126, 161, 199, 0.12);
       padding: 30px;
       border-radius: 20px;
@@ -100,6 +155,8 @@
         inset 0 0 8px #7ea1c7aa;
       backdrop-filter: blur(8px);
       z-index: 1;
+      flex-shrink: 0;
+      user-select: none;
     }
     input {
       padding: 15px 20px;
@@ -163,58 +220,6 @@
       color: #d97e7e;
     }
 
-    /* Lists */
-    .lists {
-      margin-top: 50px;
-      display: flex;
-      gap: 60px;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-      max-width: 800px;
-      z-index: 1;
-    }
-    .list-box {
-      background: rgba(126, 161, 199, 0.08);
-      border: 2px solid #7ea1c7aa;
-      padding: 30px 25px;
-      border-radius: 18px;
-      width: 320px;
-      min-height: 200px;
-      box-shadow:
-        0 0 12px #7ea1c7cc inset;
-      overflow-y: auto;
-      color: #496a8c;
-    }
-    .list-box h3 {
-      margin-top: 0;
-      margin-bottom: 18px;
-      font-size: 1.5rem;
-      text-shadow: 0 0 6px #7ea1c7aa;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      user-select: none;
-      color: #7ea1c7;
-    }
-    .list-box ul {
-      list-style: none;
-      padding-left: 10px;
-      margin: 0;
-      max-height: 130px;
-      overflow-y: auto;
-    }
-    .list-box li {
-      padding: 10px 6px;
-      border-bottom: 1px solid rgba(126, 161, 199, 0.15);
-      font-weight: 600;
-      font-size: 1.1rem;
-      letter-spacing: 0.7px;
-      user-select: text;
-    }
-    .list-box li:last-child {
-      border-bottom: none;
-    }
-
     /* Scrollbar personnalisée */
     .list-box ul::-webkit-scrollbar {
       width: 8px;
@@ -228,19 +233,19 @@
     }
 
     /* Responsive */
-    @media (max-width: 700px) {
-      .lists {
+    @media (max-width: 950px) {
+      .main-container {
         flex-direction: column;
         align-items: center;
         gap: 30px;
+        max-width: 90vw;
       }
-      .list-box {
-        width: 90vw;
-        max-width: 350px;
+      .scanner-form, .list-box {
+        width: 100%;
+        max-width: 450px;
       }
-      .scanner-form {
-        width: 90vw;
-        max-width: 350px;
+      .list-box ul {
+        max-height: none;
       }
     }
   </style>
@@ -254,27 +259,29 @@
     <button class="tab-button" onclick="setMode('Retour')">Retour</button>
   </div>
 
-  <form
-  <form class="scanner-form" onsubmit="handleSubmit(event)" autocomplete="off" spellcheck="false">
-    <input type="text" id="badgeId" placeholder="Scanner le badge employé" autofocus required />
-    <input type="text" id="scannerId" placeholder="Scanner le scanneur" required />
-    <button type="submit">Valider</button>
-    <div class="status" id="statusMessage"></div>
-  </form>
+  <div class="main-container">
 
-  <div class="lists">
-    <div class="list-box">
-      <h3>Scanneurs disponibles</h3>
-      <ul id="availableList">
-        <li>Chargement...</li>
-      </ul>
-    </div>
-    <div class="list-box">
+    <div class="list-box" id="borrowedBox">
       <h3>Badges en emprunt</h3>
       <ul id="borrowedList">
         <li>Chargement...</li>
       </ul>
     </div>
+
+    <form class="scanner-form" onsubmit="handleSubmit(event)" autocomplete="off" spellcheck="false">
+      <input type="text" id="badgeId" placeholder="Scanner le badge employé" autofocus required />
+      <input type="text" id="scannerId" placeholder="Scanner le scanneur" required />
+      <button type="submit">Valider</button>
+      <div class="status" id="statusMessage"></div>
+    </form>
+
+    <div class="list-box" id="availableBox">
+      <h3>Scanneurs disponibles</h3>
+      <ul id="availableList">
+        <li>Chargement...</li>
+      </ul>
+    </div>
+
   </div>
 
 <script>
@@ -367,21 +374,22 @@
       }
 
       if(Array.isArray(data.borrowedBadges) && data.borrowedBadges.length){
-        borrowedList.innerHTML = data.borrowedBadges.map(b => `<li>${b.name} (${b.badgeId})</li>`).join('');
+        borrowedList.innerHTML = data.borrowedBadges.map(b => `<li>${b.name} (${b.badgeId}) - Scanneur #${b.scannerId || '?'}</li>`).join('');
       } else {
         borrowedList.innerHTML = "<li>Aucun badge en emprunt</li>";
       }
+
     } catch (err) {
-      document.getElementById("availableList").innerHTML = "<li>Erreur chargement</li>";
-      document.getElementById("borrowedList").innerHTML = "<li>Erreur chargement</li>";
-      console.error(err);
+      console.error("Erreur chargement listes:", err);
     }
   }
 
-  // Initial load
-  refreshLists();
+  // Initialisation
+  window.addEventListener('load', () => {
+    setMode("Sortie");
+    refreshLists();
+  });
 </script>
 
 </body>
 </html>
-
