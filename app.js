@@ -1,5 +1,5 @@
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbw6jrTDpU9d6ASR2agzvN4fJr8fRxC2cKPFgDA9DqBKWkSqRGPQvexEFqMPnqnkIV6lkA/exec";
+  const scriptURL = "https://script.google.com/macros/s/AKfycbzNIR2mDVri3UXKUCbss6GaRJG-hpE4KsZ5um6I8Hu0Zq0FMUUYP4KDkWu8M4J1iSib5Q/exec";
 
   let mode = "Sortie";
 
