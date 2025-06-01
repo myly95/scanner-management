@@ -248,6 +248,59 @@
         max-height: none;
       }
     }
+    /* ----------- INTRO SCREEN ------------ */
+    #introScreen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle, #010a1f, #000);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-family: 'Orbitron', sans-serif;
+      color: #7ea1c7;
+      transition: opacity 1s ease;
+    }
+
+    .intro-content {
+      text-align: center;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    #introScreen h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px #7ea1c7;
+    }
+
+    #introScreen p {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+      color: #a0b9cc;
+    }
+
+    #introScreen button {
+      padding: 14px 32px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 40px;
+      background: #7ea1c7;
+      color: #101c2a;
+      cursor: pointer;
+      box-shadow: 0 0 18px #7ea1c7cc;
+      transition: all 0.3s ease;
+    }
+    #introScreen button:hover {
+      background: #a2b9db;
+      box-shadow: 0 0 30px #a2b9db;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
   </style>
 </head>
 <body>
