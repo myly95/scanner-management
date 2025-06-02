@@ -47,6 +47,25 @@
 
     setStatus("Envoi en cours...");
     e.target.querySelector("button").disabled = true;
+    
+fetch("https://script.google.com/macros/s/AKfycbxedbsLi2w60E8lCpzO67FG_bNHqXyoCK7FR5E7wZCyO9NZ9E0H5e3IDcMpD09z0DW4cg/exec", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    badgeId: "B123",
+    scannerId: "S456",
+    mode: "Sortie"
+  })
+})
+.then(res => res.json())
+.then(data => {
+  console.log("Réponse:", data);
+})
+.catch(err => {
+  console.error("Erreur:", err);
+});
 
     try {
       const response = await fetch(scriptURL, {
