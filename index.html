@@ -2,190 +2,130 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Gestion Scanneurs - Astro 2090</title>
+  <title>Gestion Scanneurs - Auto Submit</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
-
     body {
-      margin: 0;
-      font-family: 'Orbitron', sans-serif;
-      background: black;
-      color: #0ff;
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #eee;
+      padding: 20px;
     }
-
-    #introScreen {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at center, #111, #000);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2em;
-      transition: opacity 1s ease;
-      z-index: 1000;
+    label, input, select {
+      display: block;
+      margin: 10px 0;
+      font-size: 18px;
     }
-
-    #app {
-      padding: 2em;
-      display: none;
-    }
-
-    input, button {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1em;
-      padding: 0.5em;
-      background: #111;
-      color: #0ff;
-      border: 1px solid #0ff;
-      margin: 0.2em 0;
-    }
-
-    #availableList, #borrowedList {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    h2 {
-      margin-top: 2em;
-      color: #0ff;
-    }
-
-    .mode-toggle {
-      margin-bottom: 1em;
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div id="introScreen" style="opacity:1; transition: opacity 1s;">
-  <h1>Bienvenue dans Astro 2090</h1>
-  <button onclick="hideIntro()">Commencer</button>
-</div>
 
-<div id="mainApp" style="display:none;">
-  <button id="modeBtn">Sortie</button>
-  <form id="scanForm">
-    <input id="badgeId" type="text" placeholder="Badge ID" autocomplete="off" />
-    <input id="scannerId" type="text" placeholder="Scanner ID" autocomplete="off" />
-    <button type="submit">Valider</button>
+  <h1>Gestion Scanneurs</h1>
+
+  <form id="scanForm" onsubmit="return false;">
+    <label for="badgeId">Badge :</label>
+    <input type="text" id="badgeId" placeholder="Scan du badge" autofocus required />
+
+    <label for="scannerId">Scanneur :</label>
+    <select id="scannerId" required></select>
   </form>
+
   <div id="status"></div>
+
   <h2>Scanneurs Disponibles</h2>
   <ul id="availableList"></ul>
+
   <h2>Badges en Emprunt</h2>
   <ul id="borrowedList"></ul>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  function hideIntro() {
-    const introScreen = document.getElementById('introScreen');
-    introScreen.style.opacity = '0';
-    setTimeout(() => {
-      introScreen.style.display = 'none';
-      document.getElementById('mainApp').style.display = 'block';
-      resetForm();
-      refreshLists();
-    }, 1000);
-  }
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    const SUPABASE_URL = 'https://jwmrapjeofqigzqvvdep.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3bXJhcGplb2ZxaWd6cXZ2ZGVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxOTc3NzUsImV4cCI6MjA2NDc3Mzc3NX0.RfG59P69T9F2MtwEf6kOQ7cdfTUCJ3hHx1YCGLJpeGI';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const SUPABASE_URL = 'https://jwmrapjeofqigzqvvdep.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3bXJhcGplb2ZxaWd6cXZ2ZGVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxOTc3NzUsImV4cCI6MjA2NDc3Mzc3NX0.RfG59P69T9F2MtwEf6kOQ7cdfTUCJ3hHx1YCGLJpeGI';
+    const badgeInput = document.getElementById("badgeId");
+    const scannerSelect = document.getElementById("scannerId");
+    const availableList = document.getElementById("availableList");
+    const borrowedList = document.getElementById("borrowedList");
+    const statusDiv = document.getElementById("status");
 
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    badgeInput.addEventListener("input", tryAutoSubmit);
+    scannerSelect.addEventListener("change", tryAutoSubmit);
 
-  const form = document.getElementById("scanForm");
-  const modeBtn = document.getElementById("modeBtn");
-  const statusDiv = document.getElementById("status");
-  const availableList = document.getElementById("availableList");
-  const borrowedList = document.getElementById("borrowedList");
+    async function refreshLists() {
+      try {
+        // Liste scanners disponibles
+        const { data: availableScanners, error: availErr } = await supabase
+          .from('Scanners')
+          .select('ScannerID')
+          .eq('Status', 'disponible');
 
-  let mode = "Sortie";
+        if (availErr) throw availErr;
 
-  modeBtn.addEventListener("click", () => {
-    mode = mode === "Sortie" ? "Retour" : "Sortie";
-    modeBtn.textContent = mode;
-    setStatus("");
-    resetForm();
-    refreshLists();
-  });
+        scannerSelect.innerHTML = availableScanners.length
+          ? availableScanners.map(s => `<option value="${s.ScannerID}">${s.ScannerID}</option>`).join('')
+          : `<option value="">Aucun disponible</option>`;
 
-  form.addEventListener("submit", handleSubmit);
+        availableList.innerHTML = availableScanners.length
+          ? availableScanners.map(s => `<li>${s.ScannerID}</li>`).join('')
+          : `<li>Aucun scanneur disponible</li>`;
 
-  function setStatus(msg, isError = false) {
-    statusDiv.textContent = msg;
-    statusDiv.style.color = isError ? "#FF5555" : "#55FF55";
-  }
+        // Liste emprunts en cours
+        const { data: emprunts, error: empErr } = await supabase
+          .from('Emprunts')
+          .select('BadgeID, ScannerID')
+          .is('DateRetour', null);
 
-  function resetForm() {
-    form.reset();
-    document.getElementById("badgeId").focus();
-  }
+        if (empErr) throw empErr;
 
-  async function refreshLists() {
-    try {
-      // Scanneurs disponibles
-      let { data: availableScanners, error: availErr } = await supabase
-        .from('Scanners')
-        .select('ScannerID')
-        .eq('Status', 'disponible');
+        borrowedList.innerHTML = emprunts.length
+          ? emprunts.map(e => `<li>Badge: ${e.BadgeID} - Scanneur: ${e.ScannerID}</li>`).join('')
+          : `<li>Aucun badge en emprunt</li>`;
 
-      if (availErr) throw availErr;
-
-      availableList.innerHTML = availableScanners.length
-        ? availableScanners.map(s => `<li>${s.ScannerID}</li>`).join('')
-        : "<li>Aucun scanneur disponible</li>";
-
-      // Badges en emprunt (DateRetour est NULL)
-      let { data: emprunts, error: empruntErr } = await supabase
-        .from('Emprunts')
-        .select('BadgeID, ScannerID')
-        .is('DateRetour', null);
-
-      if (empruntErr) throw empruntErr;
-
-      borrowedList.innerHTML = emprunts.length
-        ? emprunts.map(e => `<li>Badge: ${e.BadgeID} - Scanneur: ${e.ScannerID}</li>`).join('')
-        : "<li>Aucun badge en emprunt</li>";
-
-    } catch (err) {
-      console.error("Erreur chargement listes:", err);
-      setStatus("Erreur lors du chargement des listes.", true);
-    }
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    const badgeId = document.getElementById("badgeId").value.trim();
-    const scannerId = document.getElementById("scannerId").value.trim();
-
-    if (!badgeId || !scannerId) {
-      setStatus("Veuillez scanner le badge et le scanneur.", true);
-      return;
+      } catch (err) {
+        console.error("Erreur chargement listes:", err);
+        setStatus("Erreur chargement des données.", true);
+      }
     }
 
-    setStatus("Envoi en cours...");
-    form.querySelector("button").disabled = true;
+    function setStatus(msg, isError = false) {
+      statusDiv.textContent = msg;
+      statusDiv.style.color = isError ? "#f55" : "#5f5";
+    }
 
-    try {
-      if (mode === "Sortie") {
-        // Vérifier si scanner est disponible
+    function tryAutoSubmit() {
+      const badgeId = badgeInput.value.trim();
+      const scannerId = scannerSelect.value;
+
+      if (badgeId && scannerId) {
+        handleSubmit(badgeId, scannerId);
+      }
+    }
+
+    async function handleSubmit(badgeId, scannerId) {
+      setStatus("Envoi en cours...");
+      badgeInput.disabled = true;
+      scannerSelect.disabled = true;
+
+      try {
         const { data: scannerData, error: scanErr } = await supabase
           .from('Scanners')
           .select('Status')
           .eq('ScannerID', scannerId)
           .single();
 
-        if (scanErr) throw scanErr;
-
-        if (!scannerData || scannerData.Status !== 'disponible') {
+        if (scanErr || !scannerData || scannerData.Status !== 'disponible') {
           setStatus("Scanneur non disponible.", true);
-          form.querySelector("button").disabled = false;
+          badgeInput.disabled = false;
+          scannerSelect.disabled = false;
           return;
         }
 
-        // Insérer dans Emprunts
         const { error: insertErr } = await supabase.from('Emprunts').insert({
           BadgeID: badgeId,
           ScannerID: scannerId,
@@ -195,7 +135,6 @@
 
         if (insertErr) throw insertErr;
 
-        // Mettre à jour Status dans Scanners
         const { error: updateErr } = await supabase
           .from('Scanners')
           .update({ Status: 'emprunté' })
@@ -204,58 +143,22 @@
         if (updateErr) throw updateErr;
 
         setStatus("Prêt enregistré avec succès.");
-        resetForm();
-        refreshLists();
+        badgeInput.value = "";
+        badgeInput.focus();
+        scannerSelect.selectedIndex = 0;
 
-      } else if (mode === "Retour") {
-        // Chercher emprunt non retourné
-        const { data: empruntData, error: empruntErr } = await supabase
-          .from('Emprunts')
-          .select('*')
-          .eq('BadgeID', badgeId)
-          .eq('ScannerID', scannerId)
-          .is('DateRetour', null)
-          .single();
-
-        if (empruntErr) {
-          setStatus("Emprunt introuvable pour ce badge et ce scanneur.", true);
-          form.querySelector("button").disabled = false;
-          return;
-        }
-
-        // Mettre à jour DateRetour
-        const { error: retourErr } = await supabase
-          .from('Emprunts')
-          .update({ DateRetour: new Date().toISOString() })
-          .eq('BadgeID', badgeId)
-          .eq('ScannerID', scannerId)
-          .is('DateRetour', null);
-
-        if (retourErr) throw retourErr;
-
-        // Mettre à jour statut Scanners
-        const { error: updateScanErr } = await supabase
-          .from('Scanners')
-          .update({ Status: 'disponible' })
-          .eq('ScannerID', scannerId);
-
-        if (updateScanErr) throw updateScanErr;
-
-        setStatus("Retour enregistré avec succès.");
-        resetForm();
-        refreshLists();
+      } catch (error) {
+        console.error(error);
+        setStatus("Erreur lors de l'enregistrement.", true);
       }
-    } catch (error) {
-      console.error(error);
-      setStatus("Erreur lors de l'enregistrement.", true);
+
+      badgeInput.disabled = false;
+      scannerSelect.disabled = false;
+      refreshLists();
     }
 
-    form.querySelector("button").disabled = false;
-  }
+    refreshLists();
+  </script>
 
-  // Initialisation après intro
-  // refreshLists(); => on appelle dans hideIntro après affichage app
-
-</script>
 </body>
 </html>
