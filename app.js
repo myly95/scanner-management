@@ -1,5 +1,5 @@
 <script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycbzNIR2mDVri3UXKUCbss6GaRJG-hpE4KsZ5um6I8Hu0Zq0FMUUYP4KDkWu8M4J1iSib5Q/exec";
+  const scriptURL = "https://script.google.com/a/macros/thrivemarket.com/s/AKfycbyMy2GI0mY2kJ--5uhpNRv_EaP76jwJvFTgTjqe6_6F0WwOCtY3tSXfw1H43Agr0gtxwg/exec";
 
   let mode = "Sortie";
 
@@ -48,7 +48,7 @@
     setStatus("Envoi en cours...");
     e.target.querySelector("button").disabled = true;
     
-fetch("https://script.google.com/macros/s/AKfycbxedbsLi2w60E8lCpzO67FG_bNHqXyoCK7FR5E7wZCyO9NZ9E0H5e3IDcMpD09z0DW4cg/exec", {
+fetch("https://script.google.com/a/macros/thrivemarket.com/s/AKfycbyMy2GI0mY2kJ--5uhpNRv_EaP76jwJvFTgTjqe6_6F0WwOCtY3tSXfw1H43Agr0gtxwg/exec", {
   method: "POST",
   headers: {
     "Content-Type": "application/json"
