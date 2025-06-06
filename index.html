@@ -11,7 +11,7 @@
       color: #eee;
       padding: 20px;
     }
-    label, input, select {
+    label, input {
       display: block;
       margin: 10px 0;
       font-size: 18px;
@@ -31,7 +31,7 @@
     <input type="text" id="badgeId" placeholder="Scan du badge" autofocus required />
 
     <label for="scannerId">Scanneur :</label>
-    <select id="scannerId" required></select>
+    <input type="text" id="scannerId" placeholder="Scan du scanneur" required />
   </form>
 
   <div id="status"></div>
@@ -49,33 +49,27 @@
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const badgeInput = document.getElementById("badgeId");
-    const scannerSelect = document.getElementById("scannerId");
+    const scannerInput = document.getElementById("scannerId");
     const availableList = document.getElementById("availableList");
     const borrowedList = document.getElementById("borrowedList");
     const statusDiv = document.getElementById("status");
 
     badgeInput.addEventListener("input", tryAutoSubmit);
-    scannerSelect.addEventListener("change", tryAutoSubmit);
+    scannerInput.addEventListener("input", tryAutoSubmit);
 
     async function refreshLists() {
       try {
-        // Liste scanners disponibles
         const { data: availableScanners, error: availErr } = await supabase
           .from('Scanners')
-          .select('ScannerID')
+          .select('"ScannerID"')
           .eq('Status', 'disponible');
 
         if (availErr) throw availErr;
-
-        scannerSelect.innerHTML = availableScanners.length
-          ? availableScanners.map(s => `<option value="${s.ScannerID}">${s.ScannerID}</option>`).join('')
-          : `<option value="">Aucun disponible</option>`;
 
         availableList.innerHTML = availableScanners.length
           ? availableScanners.map(s => `<li>${s.ScannerID}</li>`).join('')
           : `<li>Aucun scanneur disponible</li>`;
 
-        // Liste emprunts en cours
         const { data: emprunts, error: empErr } = await supabase
           .from('Emprunts')
           .select('BadgeID, ScannerID')
@@ -100,7 +94,7 @@
 
     function tryAutoSubmit() {
       const badgeId = badgeInput.value.trim();
-      const scannerId = scannerSelect.value;
+      const scannerId = scannerInput.value.trim();
 
       if (badgeId && scannerId) {
         handleSubmit(badgeId, scannerId);
@@ -110,7 +104,7 @@
     async function handleSubmit(badgeId, scannerId) {
       setStatus("Envoi en cours...");
       badgeInput.disabled = true;
-      scannerSelect.disabled = true;
+      scannerInput.disabled = true;
 
       try {
         const { data: scannerData, error: scanErr } = await supabase
@@ -122,7 +116,7 @@
         if (scanErr || !scannerData || scannerData.Status !== 'disponible') {
           setStatus("Scanneur non disponible.", true);
           badgeInput.disabled = false;
-          scannerSelect.disabled = false;
+          scannerInput.disabled = false;
           return;
         }
 
@@ -144,8 +138,8 @@
 
         setStatus("Prêt enregistré avec succès.");
         badgeInput.value = "";
+        scannerInput.value = "";
         badgeInput.focus();
-        scannerSelect.selectedIndex = 0;
 
       } catch (error) {
         console.error(error);
@@ -153,7 +147,7 @@
       }
 
       badgeInput.disabled = false;
-      scannerSelect.disabled = false;
+      scannerInput.disabled = false;
       refreshLists();
     }
 
