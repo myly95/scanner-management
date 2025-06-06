@@ -345,115 +345,180 @@
   </div>
 
 <script>
- const scriptURL = "hhttps://script.google.com/a/macros/thrivemarket.com/s/AKfycbyMy2GI0mY2kJ--5uhpNRv_EaP76jwJvFTgTjqe6_6F0WwOCtY3tSXfw1H43Agr0gtxwg/exec";
-    // ---- INTRO SCREEN ----
-    function hideIntro() {
-      const intro = document.getElementById('introScreen');
-      intro.style.opacity = '0';
-      setTimeout(() => intro.style.display = 'none', 1000);
+////
+  const SUPABASE_URL = 'https://xxxxxx.supabase.co';   // Remplace par ton URL Supabase
+const SUPABASE_ANON_KEY = 'eyxxxxxxxxxxxxxxxxxxxx';  // Remplace par ta clé publique
+
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const form = document.getElementById("scanForm");
+const modeBtn = document.getElementById("modeBtn");
+const statusDiv = document.getElementById("status");
+const availableList = document.getElementById("availableList");
+const borrowedList = document.getElementById("borrowedList");
+
+let mode = "Sortie";  // Mode initial
+
+modeBtn.addEventListener("click", () => {
+  mode = mode === "Sortie" ? "Retour" : "Sortie";
+  modeBtn.textContent = mode;
+  setStatus("");
+  resetForm();
+  refreshLists();
+});
+
+form.addEventListener("submit", handleSubmit);
+
+function setStatus(msg, isError = false) {
+  statusDiv.textContent = msg;
+  statusDiv.style.color = isError ? "#FF5555" : "#55FF55";
+}
+
+function resetForm() {
+  form.reset();
+  document.getElementById("badgeId").focus();
+}
+
+async function refreshLists() {
+  try {
+    // Scanneurs disponibles
+    let { data: availableScanners, error: availErr } = await supabase
+      .from('Scanners')
+      .select('ScannerID')
+      .eq('Status', 'disponible');
+
+    if (availErr) throw availErr;
+
+    if (availableScanners.length > 0) {
+      availableList.innerHTML = availableScanners.map(s => `<li>${s.ScannerID}</li>`).join('');
+    } else {
+      availableList.innerHTML = "<li>Aucun scanneur disponible</li>";
     }
 
-  let mode = "Sortie";
+    // Badges en emprunt (depuis 'Emprunts' où DateRetour est NULL)
+    let { data: emprunts, error: empruntErr } = await supabase
+      .from('Emprunts')
+      .select('BadgeID, ScannerID')
+      .is('DateRetour', null);
 
-  function setMode(selectedMode) {
-    mode = selectedMode;
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-button').forEach(btn => {
-      if(btn.textContent === selectedMode) btn.classList.add('active');
-    });
-    clearStatus();
-    resetForm();
-  }
+    if (empruntErr) throw empruntErr;
 
-  function clearStatus() {
-    const status = document.getElementById("statusMessage");
-    status.textContent = "";
-    status.classList.remove("error");
-  }
-
-  function setStatus(message, isError = false) {
-    const status = document.getElementById("statusMessage");
-    status.textContent = message;
-    if(isError) status.classList.add("error");
-    else status.classList.remove("error");
-  }
-
-  function resetForm() {
-    document.getElementById("badgeId").value = "";
-    document.getElementById("scannerId").value = "";
-    document.getElementById("badgeId").focus();
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    const badgeInput = document.getElementById("badgeId");
-    const scannerInput = document.getElementById("scannerId");
-    const badgeId = badgeInput.value.trim();
-    const scannerId = scannerInput.value.trim();
-
-    if(!badgeId || !scannerId){
-      setStatus("Veuillez scanner le badge et le scanneur.", true);
-      return;
+    if (emprunts.length > 0) {
+      borrowedList.innerHTML = emprunts
+        .map(e => `<li>Badge: ${e.BadgeID} - Scanneur: ${e.ScannerID}</li>`)
+        .join('');
+    } else {
+      borrowedList.innerHTML = "<li>Aucun badge en emprunt</li>";
     }
 
-    setStatus("Envoi en cours...");
-    e.target.querySelector("button").disabled = true;
+  } catch (err) {
+    console.error("Erreur chargement listes:", err);
+    setStatus("Erreur lors du chargement des listes.", true);
+  }
+}
 
-    try {
-      const response = await fetch(scriptURL, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ badgeId, scannerId, mode }),
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  const badgeId = document.getElementById("badgeId").value.trim();
+  const scannerId = document.getElementById("scannerId").value.trim();
+
+  if (!badgeId || !scannerId) {
+    setStatus("Veuillez scanner le badge et le scanneur.", true);
+    return;
+  }
+
+  setStatus("Envoi en cours...");
+  form.querySelector("button").disabled = true;
+
+  try {
+    if (mode === "Sortie") {
+      // 1. Vérifier si scanner est disponible
+      const { data: scannerData, error: scanErr } = await supabase
+        .from('Scanners')
+        .select('Status')
+        .eq('ScannerID', scannerId)
+        .single();
+
+      if (scanErr) throw scanErr;
+
+      if (!scannerData || scannerData.Status !== 'disponible') {
+        setStatus("Scanneur non disponible.", true);
+        form.querySelector("button").disabled = false;
+        return;
+      }
+
+      // 2. Insérer dans Emprunts
+      const { error: insertErr } = await supabase.from('Emprunts').insert({
+        BadgeID: badgeId,
+        ScannerID: scannerId,
+        DateSortie: new Date().toISOString(),
+        DateRetour: null
       });
 
-      const data = await response.json();
+      if (insertErr) throw insertErr;
 
-      if(data.success){
-        setStatus(data.message || "Action enregistrée avec succès.");
-        resetForm();
-        refreshLists();
-      } else {
-        setStatus(data.message || "Erreur lors de l'enregistrement.", true);
+      // 3. Mettre à jour Status dans Scanners
+      const { error: updateErr } = await supabase
+        .from('Scanners')
+        .update({ Status: 'emprunté' })
+        .eq('ScannerID', scannerId);
+
+      if (updateErr) throw updateErr;
+
+      setStatus("Prêt enregistré avec succès.");
+      resetForm();
+      refreshLists();
+
+    } else if (mode === "Retour") {
+      // 1. Chercher emprunt non retourné
+      const { data: empruntData, error: empruntErr } = await supabase
+        .from('Emprunts')
+        .select('*')
+        .eq('BadgeID', badgeId)
+        .eq('ScannerID', scannerId)
+        .is('DateRetour', null)
+        .single();
+
+      if (empruntErr) {
+        setStatus("Emprunt introuvable pour ce badge et ce scanneur.", true);
+        form.querySelector("button").disabled = false;
+        return;
       }
-    } catch (error) {
-      setStatus("Erreur de communication avec le serveur.", true);
-      console.error(error);
-    }
 
-    e.target.querySelector("button").disabled = false;
+      // 2. Mettre à jour dateRetour
+      const { error: retourErr } = await supabase
+        .from('Emprunts')
+        .update({ DateRetour: new Date().toISOString() })
+        .eq('BadgeID', badgeId)
+        .eq('ScannerID', scannerId)
+        .is('DateRetour', null);
+
+      if (retourErr) throw retourErr;
+
+      // 3. Mettre à jour statut Scanners
+      const { error: updateScanErr } = await supabase
+        .from('Scanners')
+        .update({ Status: 'disponible' })
+        .eq('ScannerID', scannerId);
+
+      if (updateScanErr) throw updateScanErr;
+
+      setStatus("Retour enregistré avec succès.");
+      resetForm();
+      refreshLists();
+    }
+  } catch (error) {
+    console.error(error);
+    setStatus("Erreur lors de l'enregistrement.", true);
   }
 
-  async function refreshLists(){
-    try {
-      const res = await fetch(scriptURL);
-      const data = await res.json();
+  form.querySelector("button").disabled = false;
+}
 
-      const availableList = document.getElementById("availableList");
-      const borrowedList = document.getElementById("borrowedList");
+// Initialisation
+refreshLists();
 
-      if(Array.isArray(data.availableScanners) && data.availableScanners.length){
-        availableList.innerHTML = data.availableScanners.map(sc => `<li>${sc}</li>`).join('');
-      } else {
-        availableList.innerHTML = "<li>Aucun scanneur disponible</li>";
-      }
-
-      if(Array.isArray(data.borrowedBadges) && data.borrowedBadges.length){
-        borrowedList.innerHTML = data.borrowedBadges.map(b => `<li>${b.name} (${b.badgeId}) - Scanneur #${b.scannerId || '?'}</li>`).join('');
-      } else {
-        borrowedList.innerHTML = "<li>Aucun badge en emprunt</li>";
-      }
-
-    } catch (err) {
-      console.error("Erreur chargement listes:", err);
-    }
-  }
-
-  // Initialisation
-  window.addEventListener('load', () => {
-    setMode("Sortie");
-    refreshLists();
-  });
 </script>
 
 </body>
