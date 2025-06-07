@@ -1,12 +1,12 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Gestion Scanneurs - Astro D'Ara Hypék </title>
-   <link rel="stylesheet" href="style.css" />
+  <title>Gestion Scanneurs - Sortie / Retour</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
- <h1>Gestion Scanneurs - Astro D'Ara Hypék </h1>
+ <h1>Gestion Scanneurs</h1>
+  <h2>Astro D'ARA Hypék </h2>
 
 <div class="main-container">
 
@@ -172,7 +172,81 @@
 
       alert("Scanner retourné avec succès.");
     }
+    
+    
+    
+    // examplaire
+    // Display pour scanner en emprunt
+    
+async function loadBorrowed() {
+  const ul = document.getElementById('borrowedList');
+  ul.innerHTML = '<li>Chargement...</li>';
+
+  const { data, error } = await supabase
+    .from('Emprunts')
+    .select('BadgeID, ScannerID');
+
+  if (error) {
+    ul.innerHTML = `<li>Erreur : ${error.message}</li>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    ul.innerHTML = '<li>Aucun badge en emprunt</li>';
+    return;
+  }
+
+  ul.innerHTML = ''; // Vide la liste avant d'ajouter
+
+  data.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = `BadgeID : ${item.BadgeID} — ScannerID : ${item.ScannerID}`;
+    ul.appendChild(li);
+  });
+}
+
+// Appelle cette fonction au chargement de la page
+window.onload = () => {
+  loadBorrowed();
+  // si tu as une fonction pour les scanners dispo : loadAvailable();
+};
+
+    // Display pour scanneur disponible
+async function loadAvailable() {
+  const ul = document.getElementById('availableList');
+  ul.innerHTML = '<li>Chargement...</li>';
+
+  const { data, error } = await supabase
+    .from('Scanners')
+    .select('ScannerID')
+    .eq('Status', 'disponible');
+
+  if (error) {
+    ul.innerHTML = `<li>Erreur : ${error.message}</li>`;
+    return;
+  }
+
+  if (!data.length) {
+    ul.innerHTML = '<li>Aucun scanner disponible</li>';
+    return;
+  }
+
+  ul.innerHTML = '';
+  data.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = `Scanner: ${item.ScannerID}`;
+    ul.appendChild(li);
+  });
+}
+
+// Charge au démarrage
+window.onload = () => {
+  loadBorrowed();
+  loadAvailable();
+};
+
   </script>
 </body>
 </html>
+
 
