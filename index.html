@@ -2,386 +2,127 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Gestion Scanneurs - Astro 2090</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
-
-    body {
-      margin: 0;
-      height: 100vh;
-      font-family: 'Orbitron', sans-serif;
-      background: radial-gradient(circle at center, #01020f, #0f111f 70%);
-      overflow-x: hidden;
-      color: #a0b9cc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 30px 10px 60px;
-      user-select: none;
-      position: relative;
-    }
-
-    /* Background grille animé */
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background:
-        linear-gradient(90deg, rgba(160, 185, 204, 0.07) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(160, 185, 204, 0.07) 1px, transparent 1px);
-      background-size: 40px 40px;
-      animation: gridShift 30s linear infinite;
-      pointer-events: none;
-      z-index: 0;
-    }
-    @keyframes gridShift {
-      0% { background-position: 0 0, 0 0; }
-      100% { background-position: 40px 40px, 40px 40px; }
-    }
-
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      text-shadow:
-        0 0 6px #6a8dadaa,
-        0 0 10px #6a8dadaa;
-      letter-spacing: 4px;
-      color: #7ea1c7;
-      z-index: 1;
-    }
-
-    /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 24px;
-      margin-bottom: 30px;
-      z-index: 1;
-    }
-    .tab-button {
-      background: transparent;
-      border: 2px solid #7ea1c7;
-      color: #7ea1c7;
-      padding: 14px 48px;
-      font-size: 1.25rem;
-      cursor: pointer;
-      border-radius: 40px;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 8px #7ea1c7aa;
-      letter-spacing: 1.5px;
-      user-select: none;
-    }
-    .tab-button:hover {
-      background: #7ea1c7dd;
-      color: #101c2a;
-      box-shadow: 0 0 14px #7ea1c7cc;
-      transform: scale(1.05);
-    }
-    .tab-button.active {
-      background: #7ea1c7;
-      color: #101c2a;
-      box-shadow: 0 0 18px #7ea1c7ee, 0 0 32px #7ea1c7cc;
-      transform: scale(1.1);
-      pointer-events: none;
-    }
-
-    /* Conteneur principal 3 colonnes */
-    .main-container {
-      display: flex;
-      gap: 40px;
-      align-items: flex-start;
-      max-width: 1100px;
-      width: 100%;
-      margin: auto;
-      z-index: 1;
-    }
-
-    /* Colonnes */
-    .list-box {
-      background: rgba(126, 161, 199, 0.08);
-      border: 2px solid #7ea1c7aa;
-      padding: 30px 25px;
-      border-radius: 18px;
-      box-shadow:
-        0 0 12px #7ea1c7cc inset;
-      overflow-y: auto;
-      color: #496a8c;
-      flex: 1;
-      max-height: 400px;
-    }
-    .list-box h3 {
-      margin-top: 0;
-      margin-bottom: 18px;
-      font-size: 1.5rem;
-      text-shadow: 0 0 6px #7ea1c7aa;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      user-select: none;
-      color: #7ea1c7;
-      text-align: center;
-    }
-    .list-box ul {
-      list-style: none;
-      padding-left: 10px;
-      margin: 0;
-      max-height: 320px;
-      overflow-y: auto;
-    }
-    .list-box li {
-      padding: 10px 6px;
-      border-bottom: 1px solid rgba(126, 161, 199, 0.15);
-      font-weight: 600;
-      font-size: 1.1rem;
-      letter-spacing: 0.7px;
-      user-select: text;
-    }
-    .list-box li:last-child {
-      border-bottom: none;
-    }
-
-    /* Form */
-    .scanner-form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      width: 350px;
-      background: rgba(126, 161, 199, 0.12);
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow:
-        0 0 12px #7ea1c7aa,
-        inset 0 0 8px #7ea1c7aa;
-      backdrop-filter: blur(8px);
-      z-index: 1;
-      flex-shrink: 0;
-      user-select: none;
-    }
-    input {
-      padding: 15px 20px;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 14px;
-      outline: none;
-      background: rgba(126, 161, 199, 0.2);
-      color: #101c2a;
-      font-weight: 600;
-      box-shadow:
-        0 0 6px #7ea1c7aa;
-      transition: background 0.3s ease;
-    }
-    input::placeholder {
-      color: #5b7a9b;
-      font-weight: 500;
-    }
-    input:focus {
-      background: #aec6e8;
-      color: #101c2a;
-      box-shadow:
-        0 0 14px #7ea1c7cc,
-        0 0 20px #7ea1c7cc;
-    }
-    button {
-      padding: 15px;
-      font-size: 1.25rem;
-      font-weight: 700;
-      border-radius: 40px;
-      border: none;
-      background: #7ea1c7;
-      color: #101c2a;
-      cursor: pointer;
-      box-shadow: 0 0 20px #7ea1c7cc;
-      transition: background 0.3s ease, box-shadow 0.3s ease;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-    button:disabled {
-      background: #42587a;
-      box-shadow: none;
-      cursor: not-allowed;
-      color: #2b3b55;
-    }
-    button:hover:not(:disabled) {
-      background: #a2b9db;
-      box-shadow: 0 0 30px #a2b9db;
-    }
-
-    /* Status */
-    .status {
-      font-weight: 700;
-      font-size: 1rem;
-      text-align: center;
-      height: 24px;
-      user-select: none;
-      color: #7ea1c7;
-    }
-    .status.error {
-      color: #d97e7e;
-    }
-
-    /* Scrollbar personnalisée */
-    .list-box ul::-webkit-scrollbar {
-      width: 8px;
-    }
-    .list-box ul::-webkit-scrollbar-thumb {
-      background: #7ea1c7bb;
-      border-radius: 6px;
-    }
-    .list-box ul::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    /* Responsive */
-    @media (max-width: 950px) {
-      .main-container {
-        flex-direction: column;
-        align-items: center;
-        gap: 30px;
-        max-width: 90vw;
-      }
-      .scanner-form, .list-box {
-        width: 100%;
-        max-width: 450px;
-      }
-      .list-box ul {
-        max-height: none;
-      }
-    }
-    /* ----------- INTRO SCREEN ------------ */
-    #introScreen {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(circle, #010a1f, #000);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      font-family: 'Orbitron', sans-serif;
-      color: #7ea1c7;
-      transition: opacity 1s ease;
-    }
-
-    .intro-content {
-      text-align: center;
-      animation: fadeIn 2s ease-in-out;
-    }
-
-    #introScreen h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-      text-shadow: 0 0 10px #7ea1c7;
-    }
-
-    #introScreen p {
-      font-size: 1.2rem;
-      margin-bottom: 30px;
-      color: #a0b9cc;
-    }
-
-    #introScreen button {
-      padding: 14px 32px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      border: none;
-      border-radius: 40px;
-      background: #7ea1c7;
-      color: #101c2a;
-      cursor: pointer;
-      box-shadow: 0 0 18px #7ea1c7cc;
-      transition: all 0.3s ease;
-    }
-    #introScreen button:hover {
-      background: #a2b9db;
-      box-shadow: 0 0 30px #a2b9db;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
-  </style>
+  <title>Gestion Scanneurs</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+  <h1>Sortie / Retour Scanneurs</h1>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script>
-  const SUPABASE_URL = 'https://jwmrapjeofqigzqvvdep.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3bXJhcGplb2ZxaWd6cXZ2ZGVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxOTc3NzUsImV4cCI6MjA2NDc3Mzc3NX0.RfG59P69T9F2MtwEf6kOQ7cdfTUCJ3hHx1YCGLJpeGI'; // ta clé
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <label>Badge ID : <input type="text" id="badgeId" /></label><br />
+  <label>Scanner ID : <input type="text" id="scannerId" /></label><br />
 
-  const badgeInput = document.getElementById("badgeId");
-  const scannerInput = document.getElementById("scannerId");
-  const availableList = document.getElementById("availableList");
-  const borrowedList = document.getElementById("borrowedList");
-  const statusDiv = document.getElementById("statusMessage");
-  let mode = "Sortie";
+  <button onclick="sortie()">Sortie</button>
+  <button onclick="retour()">Retour</button>
 
-  window.onload = () => {
-    hideIntro(); setMode("Sortie"); refreshLists();
-  };
+  <script>
+    const supabaseUrl = 'https://jwmrapjeofqigzqvvdep.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3bXJhcGplb2ZxaWd6cXZ2ZGVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxOTc3NzUsImV4cCI6MjA2NDc3Mzc3NX0.RfG59P69T9F2MtwEf6kOQ7cdfTUCJ3hHx1YCGLJpeGI'
 
-  function hideIntro() {
-    document.getElementById('introScreen').style.display = 'none';
-  }
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey)
 
-  function setMode(m) {
-    mode = m;
-    document.querySelectorAll('.tab-button').forEach(b => b.classList.toggle('active', b.textContent === m));
-    badgeInput.value = ''; scannerInput.value = ''; setStatus("");
-    badgeInput.focus();
-  }
+    async function sortie() {
+      const badgeId = document.getElementById('badgeId').value.trim()
+      const scannerId = document.getElementById('scannerId').value.trim()
+      if (!badgeId || !scannerId) {
+        alert('Merci de remplir Badge ID et Scanner ID')
+        return
+      }
 
-  badgeInput.addEventListener("input", trySubmit);
-  scannerInput.addEventListener("input", trySubmit);
+      // Vérifier si scanner est disponible
+      const { data: scanner, error: errScan } = await supabase
+        .from('Scanners')
+        .select('Status')
+        .eq('ScannerID', scannerId)
+        .single()
 
-  function setStatus(msg, err=false) {
-    statusDiv.textContent = msg;
-    statusDiv.classList.toggle('error', err);
-  }
+      if (errScan) {
+        alert('Erreur: ' + errScan.message)
+        return
+      }
+      if (!scanner || scanner.Status !== 'disponible') {
+        alert('Scanner non disponible.')
+        return
+      }
 
-  async function refreshLists() {
-    // Scanneurs dispo
-    let { data: av, error: e1 } = await supabase.from('Scanners').select('ScannerID').eq('Status','disponible');
-    availableList.innerHTML = e1 ? '<li>Erreur</li>' :
-      av.length ? av.map(s => `<li>${s.ScannerID}</li>`).join('') : '<li>Aucun scanneur disponible</li>';
-    // Emprunts en cours
-    let { data: em, error: e2 } = await supabase.from('Emprunts').select('BadgeID,ScannerID').is('DateRetour', null);
-    borrowedList.innerHTML = e2 ? '<li>Erreur</li>' :
-      em.length ? em.map(x => `<li>Badge ${x.BadgeID} → Scanneur ${x.ScannerID}</li>`).join('') : '<li>Aucun badge en emprunt</li>';
-  }
+      // Ajouter emprunt
+      const { error: errEmprunt } = await supabase.from('Emprunts').insert([{ BadgeID: badgeId, ScannerID: scannerId }])
+      if (errEmprunt) {
+        alert('Erreur ajout emprunt: ' + errEmprunt.message)
+        return
+      }
 
-  function trySubmit() {
-    if (badgeInput.value.trim() && scannerInput.value.trim()) {
-      handleSubmit();
-    }
-  }
+      // Mettre à jour statut scanner
+      const { error: errUpdate } = await supabase
+        .from('Scanners')
+        .update({ Status: 'emprunté' })
+        .eq('ScannerID', scannerId)
 
-  async function handleSubmit() {
-    const b = badgeInput.value.trim(), s = scannerInput.value.trim();
-    setStatus("Envoi...",false);
-    badgeInput.disabled = true; scannerInput.disabled = true;
+      if (errUpdate) {
+        alert('Erreur mise à jour scanner: ' + errUpdate.message)
+        return
+      }
 
-    const { data: sd, error: e1 } = await supabase.from('Scanners').select('Status').eq('ScannerID', s).single();
-    if (e1 || !sd || sd.Status !== 'disponible') {
-      setStatus("Scanneur non dispo", true);
-      badgeInput.disabled= scannerInput.disabled=false; return;
+      alert('Sortie enregistrée avec succès !')
     }
 
-    let { error: e2 } = await supabase.from('Emprunts').insert({ BadgeID:b, ScannerID:s, DateSortie: new Date().toISOString(), DateRetour:null });
-    let { error: e3 } = await supabase.from('Scanners').update({ Status:'emprunté' }).eq('ScannerID', s);
-    if (e2||e3) {
-      setStatus("Erreur !", true);
-    } else {
-      setStatus("Enregistré");
-      badgeInput.value=''; scannerInput.value='';
-    }
+    async function retour() {
+      const badgeId = document.getElementById('badgeId').value.trim()
+      const scannerId = document.getElementById('scannerId').value.trim()
+      if (!badgeId || !scannerId) {
+        alert('Merci de remplir Badge ID et Scanner ID')
+        return
+      }
 
-    badgeInput.disabled= scannerInput.disabled=false;
-    badgeInput.focus();
-    await refreshLists();
-  }
-</script>
+      // Vérifier si emprunt existe
+      const { data: emprunt, error: errEmprunt } = await supabase
+        .from('Emprunts')
+        .select('*')
+        .eq('BadgeID', badgeId)
+        .eq('ScannerID', scannerId)
+        .single()
+
+      if (errEmprunt || !emprunt) {
+        alert('Aucun emprunt trouvé pour ce badge et scanner.')
+        return
+      }
+
+      // Supprimer emprunt
+      const { error: errDelete } = await supabase
+        .from('Emprunts')
+        .delete()
+        .eq('BadgeID', badgeId)
+        .eq('ScannerID', scannerId)
+
+      if (errDelete) {
+        alert('Erreur suppression emprunt: ' + errDelete.message)
+        return
+      }
+
+      // Mettre à jour statut scanner
+      const { error: errUpdate } = await supabase
+        .from('Scanners')
+        .update({ Status: 'disponible' })
+        .eq('ScannerID', scannerId)
+
+      if (errUpdate) {
+        alert('Erreur mise à jour scanner: ' + errUpdate.message)
+        return
+      }
+
+      // Ajouter dans historique
+      const { error: errHist } = await supabase.from('Historique').insert([{
+        BadgeID_Sortie: badgeId,
+        ScannerID: scannerId,
+        DateRetour: new Date().toISOString()
+      }])
+
+      if (errHist) {
+        alert('Erreur ajout historique: ' + errHist.message)
+        return
+      }
+
+      alert('Retour enregistré avec succès !')
+    }
+  </script>
 </body>
 </html>
