@@ -1,128 +1,178 @@
-<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Gestion Scanneurs</title>
+  <title>Gestion Scanneurs - Sortie / Retour</title>
+   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <h1>Sortie / Retour Scanneurs</h1>
+ <h1>Gestion Scanneurs</h1>
 
-  <label>Badge ID : <input type="text" id="badgeId" /></label><br />
-  <label>Scanner ID : <input type="text" id="scannerId" /></label><br />
+<div class="main-container">
 
-  <button onclick="sortie()">Sortie</button>
-  <button onclick="retour()">Retour</button>
-  
- 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const supabaseUrl = 'https://jwmrapjeofqigzqvvdep.supabase.co'
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3bXJhcGplb2ZxaWd6cXZ2ZGVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxOTc3NzUsImV4cCI6MjA2NDc3Mzc3NX0.RfG59P69T9F2MtwEf6kOQ7cdfTUCJ3hHx1YCGLJpeGI'
+  <!-- COLONNE 1 : Badges en emprunt -->
+  <div class="list-box" id="borrowedBox">
+    <h3>Badges en emprunt</h3>
+    <ul id="borrowedList">
+      <li>Chargement...</li>
+    </ul>
+  </div>
 
-  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey)
+  <!-- FORMULAIRE CENTRE -->
+  <form class="scanner-form" onsubmit="event.preventDefault();">
+    <label for="badgeId">Badge ID :</label>
+    <input type="text" id="badgeId" placeholder="Ex: EMP034" required />
 
-  async function sortie() {
-    // Utilise supabaseClient et non supabase
-    const { data, error } = await supabaseClient.from('Scanners').select('*')
-    // ...
-  }
+    <label for="scannerId">Scanner ID :</label>
+    <input type="text" id="scannerId" placeholder="Ex: SCN002" required />
 
-      // Vérifier si scanner est disponible
+    <button type="button" onclick="sortie()">Sortie</button>
+    <button type="button" onclick="retour()">Retour</button>
+    <div class="status" id="statusMsg"></div>
+  </form>
+
+  <!-- COLONNE 2 : Scanners disponibles -->
+  <div class="list-box" id="availableBox">
+    <h3>Scanneurs disponibles</h3>
+    <ul id="availableList">
+      <li>Chargement...</li>
+    </ul>
+  </div>
+</div>
+
+    
+    
+    
+  <script>
+    const supabaseUrl = 'https://jwmrapjeofqigzqvvdep.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3bXJhcGplb2ZxaWd6cXZ2ZGVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkxOTc3NzUsImV4cCI6MjA2NDc3Mzc3NX0.RfG59P69T9F2MtwEf6kOQ7cdfTUCJ3hHx1YCGLJpeGI';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function sortie() {
+      const badgeId = document.getElementById('badgeId').value.trim();
+      const scannerId = document.getElementById('scannerId').value.trim();
+
+      if (!badgeId || !scannerId) {
+        alert('Merci de remplir Badge ID et Scanner ID.');
+        return;
+      }
+
+      // Vérifie s'il a déjà un scanneur non retourné
+      const { data: anciensEmprunts, error: errOld } = await supabase
+        .from('Emprunts')
+        .select('ScannerID')
+        .eq('BadgeID', badgeId);
+
+      if (errOld) {
+        alert("Erreur lors de la vérification des anciens emprunts.");
+        return;
+      }
+
+      if (anciensEmprunts.length > 0) {
+        const scannerManquant = anciensEmprunts[0].ScannerID;
+        alert(`Attention : le scanner ${scannerManquant} n'a pas encore été retourné.`);
+
+        // Enregistrer dans Manquant
+        await supabase.from('Manquant').upsert([
+          { BadgeID: badgeId, ScannerID: scannerManquant }
+        ]);
+
+        // Mettre à jour statut manquant
+        await supabase.from('Scanners')
+          .update({ Status: 'Manquant' })
+          .eq('ScannerID', scannerManquant);
+      }
+
+      // Vérifie si le scanner demandé existe
       const { data: scanner, error: errScan } = await supabase
         .from('Scanners')
         .select('Status')
         .eq('ScannerID', scannerId)
-        .single()
+        .maybeSingle();
 
       if (errScan) {
-        alert('Erreur: ' + errScan.message)
-        return
-      }
-      if (!scanner || scanner.Status !== 'disponible') {
-        alert('Scanner non disponible.')
-        return
+        alert('Erreur lors de la vérification du scanner.');
+        return;
       }
 
-      // Ajouter emprunt
-      const { error: errEmprunt } = await supabase.from('Emprunts').insert([{ BadgeID: badgeId, ScannerID: scannerId }])
-      if (errEmprunt) {
-        alert('Erreur ajout emprunt: ' + errEmprunt.message)
-        return
+      if (!scanner) {
+        // Nouveau scanner → on ajoute avec statut emprunté
+        await supabase.from('Scanners')
+          .insert([{ ScannerID: scannerId, Status: 'emprunté' }]);
+      } else if (scanner.Status === 'emprunté') {
+        alert('Ce scanner est déjà emprunté.');
+        return;
+      } else if (scanner.Status === 'Manquant') {
+        alert(`Le scanner ${scannerId} était marqué manquant, il sera réactivé.`);
+        await supabase.from('Manquant').delete().eq('ScannerID', scannerId);
+        await supabase.from('Scanners').update({ Status: 'emprunté' }).eq('ScannerID', scannerId);
+      } else {
+        await supabase.from('Scanners').update({ Status: 'emprunté' }).eq('ScannerID', scannerId);
       }
 
-      // Mettre à jour statut scanner
-      const { error: errUpdate } = await supabase
-        .from('Scanners')
-        .update({ Status: 'emprunté' })
-        .eq('ScannerID', scannerId)
+      // Enregistrer emprunt
+      await supabase.from('Emprunts').insert([
+        { BadgeID: badgeId, ScannerID: scannerId }
+      ]);
 
-      if (errUpdate) {
-        alert('Erreur mise à jour scanner: ' + errUpdate.message)
-        return
-      }
+      // Historique de sortie
+      await supabase.from('Historique').insert([
+        {
+          BadgeID_Sortie: badgeId,
+          ScannerID: scannerId,
+          Date_Sortie: new Date().toISOString()
+        }
+      ]);
 
-      alert('Sortie enregistrée avec succès !')
+      alert("Scanner prêté avec succès.");
     }
 
     async function retour() {
-      const badgeId = document.getElementById('badgeId').value.trim()
-      const scannerId = document.getElementById('scannerId').value.trim()
+      const badgeId = document.getElementById('badgeId').value.trim();
+      const scannerId = document.getElementById('scannerId').value.trim();
+
       if (!badgeId || !scannerId) {
-        alert('Merci de remplir Badge ID et Scanner ID')
-        return
+        alert('Merci de remplir Badge ID et Scanner ID.');
+        return;
       }
 
-      // Vérifier si emprunt existe
-      const { data: emprunt, error: errEmprunt } = await supabase
+      const { data: emprunt, error: errFind } = await supabase
         .from('Emprunts')
         .select('*')
         .eq('BadgeID', badgeId)
         .eq('ScannerID', scannerId)
-        .single()
+        .maybeSingle();
 
-      if (errEmprunt || !emprunt) {
-        alert('Aucun emprunt trouvé pour ce badge et scanner.')
-        return
+      if (errFind || !emprunt) {
+        alert('Aucun emprunt trouvé.');
+        return;
       }
 
-      // Supprimer emprunt
-      const { error: errDelete } = await supabase
-        .from('Emprunts')
+      await supabase.from('Emprunts')
         .delete()
         .eq('BadgeID', badgeId)
-        .eq('ScannerID', scannerId)
+        .eq('ScannerID', scannerId);
 
-      if (errDelete) {
-        alert('Erreur suppression emprunt: ' + errDelete.message)
-        return
-      }
-
-      // Mettre à jour statut scanner
-      const { error: errUpdate } = await supabase
-        .from('Scanners')
+      await supabase.from('Scanners')
         .update({ Status: 'disponible' })
+        .eq('ScannerID', scannerId);
+
+      await supabase.from('Historique')
+        .update({
+          BadgeID_Retour: badgeId,
+          Date_Retour: new Date().toISOString()
+        })
         .eq('ScannerID', scannerId)
+        .eq('BadgeID_Sortie', badgeId)
+        .is('Date_Retour', null);
 
-      if (errUpdate) {
-        alert('Erreur mise à jour scanner: ' + errUpdate.message)
-        return
-      }
+      // S’il était dans la table "Manquant", le retirer
+      await supabase.from('Manquant').delete()
+        .eq('ScannerID', scannerId);
 
-      // Ajouter dans historique
-      const { error: errHist } = await supabase.from('Historique').insert([{
-        BadgeID_Sortie: badgeId,
-        ScannerID: scannerId,
-        DateRetour: new Date().toISOString()
-      }])
-
-      if (errHist) {
-        alert('Erreur ajout historique: ' + errHist.message)
-        return
-      }
-
-      alert('Retour enregistré avec succès !')
+      alert("Scanner retourné avec succès.");
     }
   </script>
 </body>
 </html>
+
