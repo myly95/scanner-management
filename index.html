@@ -71,7 +71,7 @@
 
       if (anciensEmprunts.length > 0) {
         const scannerManquant = anciensEmprunts[0].ScannerID;
-        alert(`Attention : You have not yet returned ${scannerManquant} to the inventory.`);
+        // alert(`Attention : You have not yet returned ${scannerManquant} to the inventory.`);
         showMessage("❌ Attention : You have not yet returned your previous scanner to the inventory.");
 
         // Enregistrer dans Manquant
@@ -93,7 +93,8 @@
         .maybeSingle();
 
       if (errScan) {
-        alert('Erreur lors de la vérification du scanner.');
+        // alert('Erreur lors de la vérification du scanner.');
+        showMessage("❌ Error in the verification of the scanner");
         return;
       }
 
@@ -102,7 +103,8 @@
         await supabase.from('Scanners')
           .insert([{ ScannerID: scannerId, Status: 'emprunté' }]);
       } else if (scanner.Status === 'emprunté') {
-        alert('Ce scanner est déjà emprunté.');
+        // alert('Ce scanner est déjà emprunté.');
+        showMessage("❌ Attention : This Scanner has already been borrowed.");
         return;
       } else if (scanner.Status === 'Manquant') {
         alert(`Le scanner ${scannerId} était marqué manquant, il sera réactivé.`);
@@ -126,7 +128,7 @@
         }
       ]);
 
-      alert("Scanner is successfully check-out-Scanner prêté avec succès.");
+      // alert("Scanner is successfully check-out-Scanner prêté avec succès.");
       showMessage("✅ Scanner was successfully check-out");
       
     }
