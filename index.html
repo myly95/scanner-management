@@ -27,14 +27,14 @@
     <label for="scannerId">Scanner ID :</label>
     <input type="text" id="scannerId" placeholder="Ex: SCN002" required />
 
-    <button type="button" onclick="sortie()">Sortie</button>
-    <button type="button" onclick="retour()">Retour</button>
+    <button type="button" onclick="sortie()">Check-out</button> 
+    <button type="button" onclick="retour()">Return</button>
     <div class="status" id="statusMsg"></div>
   </form>
 
   <!-- COLONNE 2 : Scanners disponibles -->
   <div class="list-box" id="availableBox">
-    <h3>Scanneurs disponibles</h3>
+    <h3>Scanneurs Available</h3>
     <ul id="availableList">
       <li>Chargement...</li>
     </ul>
