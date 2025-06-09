@@ -71,7 +71,7 @@
 
       if (anciensEmprunts.length > 0) {
         const scannerManquant = anciensEmprunts[0].ScannerID;
-        alert(`Attention : le scanner ${scannerManquant} n'a pas encore été retourné.`);
+        alert(`Attention : You have not yet returned ${scannerManquant} to the inventory.`);
 
         // Enregistrer dans Manquant
         await supabase.from('Manquant').upsert([
@@ -125,7 +125,7 @@
         }
       ]);
 
-      alert("Scanner prêté avec succès.");
+      alert("Scanner is successfully check-out-Scanner prêté avec succès.");
     }
 
     async function retour() {
