@@ -72,6 +72,7 @@
       if (anciensEmprunts.length > 0) {
         const scannerManquant = anciensEmprunts[0].ScannerID;
         alert(`Attention : You have not yet returned ${scannerManquant} to the inventory.`);
+        showMessage("❌ Attention : You have not yet returned your previous scanner to the inventory.");
 
         // Enregistrer dans Manquant
         await supabase.from('Manquant').upsert([
@@ -126,6 +127,8 @@
       ]);
 
       alert("Scanner is successfully check-out-Scanner prêté avec succès.");
+      showMessage("✅ Scanner was successfully check-out");
+      
     }
 
     async function retour() {
@@ -172,6 +175,7 @@
         .eq('ScannerID', scannerId);
 
       alert("Scanner retourné avec succès.");
+      showMessage("✅ Scanner was returned, Thanks.");
     }
     
     
@@ -244,7 +248,29 @@ async function loadAvailable() {
 window.onload = () => {
   loadBorrowed();
   loadAvailable();
+   document.getElementById('badgeId').addEventListener('input', function () {
+    setTimeout(() => {
+      const value = this.value.trim();
+      if (value.length >= 5) {
+        document.getElementById('scannerId').focus();
+      }
+    }, 100);
+  });
+  
 };
+// Visualiser message
+   function showMessage(message, color = 'green') {
+  const statusMsg = document.getElementById('statusMsg');
+  statusMsg.textContent = message;
+  statusMsg.style.color = color;
+  statusMsg.style.fontWeight = 'bold';
+  statusMsg.style.padding = '8px 0';
+
+  // Réinitialise après 4 secondes
+  setTimeout(() => {
+    statusMsg.textContent = '';
+  }, 4000);
+}
 
   </script>
 </body>
